@@ -1,0 +1,36 @@
+version: "3"
+
+networks: 
+  adminnetwork:
+    driver: bridge
+    name: admin-network
+
+services:
+  rabbitmq:
+    container_name: admin.rabbitmq
+    image: rabbitmq:3.10-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=adminuser
+      - RABBITMQ_DEFAULT_PASS=123456
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - adminnetwork
+
+  api:
+    container_name: admin.api
+    image: vitormoschetta/admin.api
+    build:
+      context: .
+      dockerfile: infra/docker/admin.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://*:6601      
+      QueueSettings__Host: admin.rabbitmq      
+    ports:
+      - 6601:6601
+    networks:
+      - adminnetwork
+    depends_on:      
+      - rabbitmq
