@@ -1,6 +1,6 @@
 using Admin.Api.Requests.Queue;
+using Admin.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
 namespace Admin.Api.Controllers
@@ -9,23 +9,18 @@ namespace Admin.Api.Controllers
     [Route("api/queue")]
     public class QueueController : ControllerBase
     {
-        private readonly ConnectionFactory _connectionFactory;
+        private readonly ConnectionBrokerService _connectionBroker;
 
-        public QueueController(IOptions<AppSettings> appSettings)
+        public QueueController(ConnectionBrokerService connectionBroker)
         {
-            _connectionFactory = new ConnectionFactory
-            {
-                HostName = appSettings.Value.RabbitMq.Host,
-                UserName = appSettings.Value.RabbitMq.Username,
-                Password = appSettings.Value.RabbitMq.Password
-            };
+            _connectionBroker = connectionBroker;
         }
-       
+
         [HttpPost]
         public IActionResult QueueCreate([FromBody] CreateQueueRequest request)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            using var channel = connection.CreateModel();
+            var connection = _connectionBroker.GetConnection();
+            var channel = connection.CreateModel();
 
             channel.QueueDeclare(
                 queue: request.Name,
@@ -37,33 +32,42 @@ namespace Admin.Api.Controllers
             return Ok();
         }
 
+
         [HttpDelete("{name}")]
         public IActionResult QueueDelete(string name)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            using var channel = connection.CreateModel();
+            var connection = _connectionBroker.GetConnection();
+            var channel = connection.CreateModel();
 
             channel.QueueDelete(name);
 
             return Ok();
         }
 
+
+        /// <summary>
+        /// Purge significa eliminar todas as mensagens da fila.
+        /// </summary>
         [HttpPut("purge/{name}")]
         public IActionResult QueuePurge(string name)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            using var channel = connection.CreateModel();
+            var connection = _connectionBroker.GetConnection();
+            var channel = connection.CreateModel();
 
             channel.QueuePurge(name);
 
             return Ok();
         }
 
+
+        /// <summary>
+        /// Bind significa associar uma fila a um exchange.
+        /// </summary>
         [HttpPut("bind")]
         public IActionResult QueueBind([FromBody] BindQueueRequest request)
         {
-            using var connection = _connectionFactory.CreateConnection();
-            using var channel = connection.CreateModel();
+            var connection = _connectionBroker.GetConnection();
+            var channel = connection.CreateModel();
 
             channel.QueueBind(
                 queue: request.QueueName,

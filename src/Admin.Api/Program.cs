@@ -1,5 +1,6 @@
 using Admin.Api;
 using Admin.Api.Middlewares;
+using Admin.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<ConnectionBrokerService>();
 
 builder.Services.AddCors(options =>
 {
