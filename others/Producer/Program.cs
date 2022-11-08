@@ -1,11 +1,38 @@
 ﻿using RabbitMQ.Client;
 
-var queueName = "pagamentos";
+var exchangeName = "pgto";
+var queueName = "pgto";
+
 
 Execute();
 
 
 void Execute()
+{
+    Console.WriteLine("Escolha uma RouteKey: ");
+    Console.WriteLine("1 - pgto.cartao");
+    Console.WriteLine("2 - pgto.boleto");
+    var opcao = Console.ReadLine();
+
+    if (opcao == "1")
+    {
+        var routeKey = "pgto.cartao";        
+        BuildConnection(routeKey);
+    }
+    else if (opcao == "2")
+    {
+        var routeKey = "pgto.boleto";
+        BuildConnection(routeKey);
+    }
+    else
+    {
+        Console.WriteLine("Opção inválida");
+        Execute();
+    }
+}
+
+
+void BuildConnection(string routingKey)
 {
     var factory = GetConnectionFactory();
 
@@ -14,17 +41,26 @@ void Execute()
     {
         channel.QueueDeclare(
             queue: queueName,
-            durable: false,
+            durable: true,
             exclusive: false,
-            autoDelete: false,
-            arguments: null);
+            autoDelete: true);
 
-        SendMessage(channel);
+        channel.ExchangeDeclare(
+            exchange: exchangeName,
+            type: ExchangeType.Topic,
+            durable: true,
+            autoDelete: true);
+
+        channel.QueueBind(
+            queue: queueName,
+            exchange: exchangeName,
+            routingKey: routingKey);
+
+        SendMessage(channel, routingKey);
     }
 }
 
-
-void SendMessage(IModel channel)
+void SendMessage(IModel channel, string routingKey)
 {
     Console.WriteLine("Entre com uma mensagem para ser enviada para a fila:");
     var message = Console.ReadLine();
@@ -33,21 +69,21 @@ void SendMessage(IModel channel)
     {
         Console.WriteLine("Mensagem inválida");
 
-        SendMessage(channel);
+        SendMessage(channel, routingKey);
     }
     else
     {
         var body = System.Text.Encoding.UTF8.GetBytes(message);
 
         channel.BasicPublish(
-            exchange: "",
-            routingKey: queueName,
+            exchange: exchangeName,
+            routingKey: routingKey,
             basicProperties: null,
             body: body);
 
         Console.WriteLine("Mensagem enviada com sucesso");
 
-        SendMessage(channel);
+        SendMessage(channel, routingKey);
     }
 }
 
@@ -59,6 +95,7 @@ ConnectionFactory GetConnectionFactory()
         HostName = "localhost",
         Port = 5672,
         UserName = "adminuser",
-        Password = "123456"
+        Password = "123456",
+        ClientProvidedName = "Producer01"
     };
 }

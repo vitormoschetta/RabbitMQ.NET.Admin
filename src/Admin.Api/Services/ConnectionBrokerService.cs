@@ -14,7 +14,8 @@ namespace Admin.Api.Services
             {
                 HostName = appSettings.Value.RabbitMq.Host,
                 UserName = appSettings.Value.RabbitMq.Username,
-                Password = appSettings.Value.RabbitMq.Password
+                Password = appSettings.Value.RabbitMq.Password,
+                ClientProvidedName = appSettings.Value.RabbitMq.ClientProvidedName  
             };
 
             _connection = _connectionFactory.CreateConnection();

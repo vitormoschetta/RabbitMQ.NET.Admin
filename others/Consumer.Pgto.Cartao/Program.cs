@@ -2,9 +2,12 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-var queueName = "pagamentos";
+var exchangeName = "pgto";
+var queueName = "pgto.cartao";
+var routingKey = "pgto.cartao";
 
 var factory = GetConnectionFactory();
+
 
 Execute();
 
@@ -16,10 +19,20 @@ void Execute()
     {
         channel.QueueDeclare(
             queue: queueName,
-            durable: false,
+            durable: true,
             exclusive: false,
-            autoDelete: false,
-            arguments: null);
+            autoDelete: true);
+
+        channel.ExchangeDeclare(
+            exchange: exchangeName,
+            type: ExchangeType.Topic,
+            durable: true,
+            autoDelete: true);
+
+        channel.QueueBind(
+            queue: queueName,
+            exchange: exchangeName,
+            routingKey: routingKey);
 
         var consumer = new EventingBasicConsumer(channel);
 
@@ -32,8 +45,8 @@ void Execute()
         };
 
         channel.BasicConsume(
-            queue: queueName, 
-            autoAck: false, 
+            queue: queueName,
+            autoAck: false,
             consumer: consumer);
 
         Console.WriteLine(" Press [enter] to exit.");
@@ -49,6 +62,7 @@ ConnectionFactory GetConnectionFactory()
         HostName = "localhost",
         Port = 5672,
         UserName = "adminuser",
-        Password = "123456"
+        Password = "123456",
+        ClientProvidedName = "Consumer.Pgto.Cartao"
     };
 }
