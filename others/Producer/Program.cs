@@ -16,7 +16,7 @@ void Execute()
 
     if (opcao == "1")
     {
-        var routeKey = "pgto.cartao";        
+        var routeKey = "pgto.cartao";
         BuildConnection(routeKey);
     }
     else if (opcao == "2")
@@ -39,26 +39,46 @@ void BuildConnection(string routingKey)
     using (var connection = factory.CreateConnection())
     using (var channel = connection.CreateModel())
     {
-        channel.QueueDeclare(
-            queue: queueName,
-            durable: true,
-            exclusive: false,
-            autoDelete: true);
+        CreateQueue(channel);
 
-        channel.ExchangeDeclare(
-            exchange: exchangeName,
-            type: ExchangeType.Topic,
-            durable: true,
-            autoDelete: true);
+        CreateExchange(channel);
 
-        channel.QueueBind(
-            queue: queueName,
-            exchange: exchangeName,
-            routingKey: routingKey);
+        QueueBind(channel, routingKey);
 
         SendMessage(channel, routingKey);
     }
 }
+
+
+void CreateQueue(IModel channel)
+{
+    channel.QueueDeclare(
+        queue: queueName,
+        durable: true,
+        exclusive: false,
+        autoDelete: true);
+}
+
+
+void CreateExchange(IModel channel)
+{
+    channel.ExchangeDeclare(
+        exchange: exchangeName,
+        type: ExchangeType.Topic,
+        durable: true,
+        autoDelete: true);
+}
+
+
+void QueueBind(IModel channel, string routingKey)
+{
+    channel.QueueBind(
+        queue: queueName,
+        exchange: exchangeName,
+        routingKey: routingKey);
+}
+
+
 
 void SendMessage(IModel channel, string routingKey)
 {

@@ -7,7 +7,14 @@ var queueName = "pgto";
 var routingKey = "pgto.*";
 
 
-Execute();
+try
+{
+    Execute();
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex.Message);
+}
 
 
 void Execute()
@@ -18,22 +25,11 @@ void Execute()
     using (var connection = factory.CreateConnection())
     using (var channel = connection.CreateModel())
     {
-        channel.QueueDeclare(
-           queue: queueName,
-           durable: true,
-           exclusive: false,
-           autoDelete: true);
+        CreateQueue(channel);
 
-        channel.ExchangeDeclare(
-            exchange: exchangeName,
-            type: ExchangeType.Topic,
-            durable: true,
-            autoDelete: true);
+        CreateExchange(channel);
 
-        channel.QueueBind(
-            queue: queueName,
-            exchange: exchangeName,
-            routingKey: routingKey);
+        QueueBind(channel);
 
         var consumer = new EventingBasicConsumer(channel);
 
@@ -53,6 +49,35 @@ void Execute()
         Console.WriteLine(" Press [enter] to exit.");
         Console.ReadLine();
     }
+}
+
+
+void CreateQueue(IModel channel)
+{
+    channel.QueueDeclare(
+        queue: queueName,
+        durable: true,
+        exclusive: false,
+        autoDelete: true);
+}
+
+
+void CreateExchange(IModel channel)
+{
+    channel.ExchangeDeclare(
+        exchange: exchangeName,
+        type: ExchangeType.Topic,
+        durable: true,
+        autoDelete: true);
+}
+
+
+void QueueBind(IModel channel)
+{
+    channel.QueueBind(
+        queue: queueName,
+        exchange: exchangeName,
+        routingKey: routingKey);
 }
 
 
