@@ -82,10 +82,19 @@ dotnet run
 
 #### Exchange Bindings
 
-- Bind: Significa que a exchange está vinculada a outra exchange.
+- Bind: Significa conectar uma fila a um exchange.
 
-- Unbind: Significa que a exchange está desvinculada de outra exchange.
+- Unbind: Significa desconectar uma fila de um exchange.
 
 
+#### Publish Confirms
+
+Um tipo de configuração onde o Producer/Publisher espera uma confirmação do Broker (comunicação síncrona) de que a mensagem foi publicada com sucesso.
+Não é uma configuração recomendada para aplicações de alta performance, pois a cada mensagem publicada o Producer/Publisher aguarda a confirmação do Broker.
+Essa abordagem não entregará mais do que algumas centenas de mensagens publicadas por segundo.
+
+Uma estratégia para melhorar a performance é utilizar o Publish Confirms em conjunto com o Batch Publish, que é uma configuração onde o Producer/Publisher envia várias mensagens para o Broker de uma só vez.
+
+<https://www.rabbitmq.com/tutorials/tutorial-seven-dotnet.html>
 
 

@@ -4,7 +4,15 @@ var exchangeName = "pgto";
 var queueName = "pgto";
 
 
-Execute();
+try
+{
+    Execute();
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex.Message);
+    Console.WriteLine(ex.StackTrace);
+}
 
 
 void Execute()
