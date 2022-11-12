@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Admin.Api.Controllers
 {
     [ApiController]
-    [Route("api/queue")]
+    [Route("api/exchange")]
     public class ExchangeController : ControllerBase
     {
         private readonly ConnectionBrokerService _connectionBroker;
