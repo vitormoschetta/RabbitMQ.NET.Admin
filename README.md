@@ -134,11 +134,23 @@ Uma estratégia para melhorar a performance é utilizar o Publish Confirms em co
 
 #### Recuperação de falhas
 
-Verificar como:
-- limitar quantidade de retentaivas de envio de mensagem.
-- limitar tempo de espera para envio de mensagem.
-- criação de fila e exchange de mensagens não entregues (dead letter queue):
-    - Comprimento máximo da fila excedido.
-    - Tempo de vida da mensagem excedido.
-    - Mensagem rejeitada pelo consumidor.
+- Quando o RabbitMQ é reiniciado, as filas e exchanges são perdidas. Para evitar isso, podemos definir as filas e exchanges como `durable`.
+
+
+#### Dead Letter Exchange
+
+- É uma exchange que recebe mensagens que não foram processadas por um consumidor. Essas mensagens são enviadas para a dead letter exchange quando o TTL (Time To Live) da mensagem expira ou quando o consumidor rejeita a mensagem.
+
+- Para configurar uma dead letter exchange, precisamos definir o parâmetro `x-dead-letter-exchange` na criação da fila. Esse parâmetro define o nome da exchange que receberá as mensagens mortas.
+
+
+#### Mover mensagens de uma fila para outra
+
+É necessário habilitar o plugin `rabbitmq_shovel` no RabbitMQ. Executar dentro do container do RabbitMQ:
+
+```bash
+rabbitmq-plugins enable rabbitmq_shovel rabbitmq_shovel_management
+```
+
+Obs: Temos um endpoint com exemplo de como mover mensagens de uma fila para outra. Olhar o arquivo `src/Admin.Api/Controllers/QueueController.cs`.
 
