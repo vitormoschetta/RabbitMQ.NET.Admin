@@ -3,6 +3,9 @@
 var exchangeName = "pgto";
 var queueName = "pgto";
 
+var dlqExchangeName = "pgto.dql";
+var dlqQueueName = "pgto.dlq";
+
 
 try
 {
@@ -47,14 +50,43 @@ void BuildConnection(string routingKey)
     using (var connection = factory.CreateConnection())
     using (var channel = connection.CreateModel())
     {
+        CreateDlqQueue(channel);
+        CreateDlxExchange(channel);
+        BindDlqQueueToDqlExchange(channel);
+
         CreateQueue(channel);
-
         CreateExchange(channel);
-
-        QueueBind(channel, routingKey);
+        BindQueueToExchange(channel, routingKey);
 
         SendMessage(channel, routingKey);
     }
+}
+
+
+void CreateDlqQueue(IModel channel)
+{
+    channel.QueueDeclare(
+        queue: dlqQueueName,
+        durable: true,
+        exclusive: false,
+        autoDelete: true);
+}
+
+void CreateDlxExchange(IModel channel)
+{
+    channel.ExchangeDeclare(
+        exchange: dlqExchangeName,
+        type: ExchangeType.Fanout,
+        durable: true,
+        autoDelete: true);
+}
+
+void BindDlqQueueToDqlExchange(IModel channel)
+{
+    channel.QueueBind(
+        queue: dlqQueueName,
+        exchange: dlqExchangeName,
+        routingKey: string.Empty);
 }
 
 
@@ -64,28 +96,29 @@ void CreateQueue(IModel channel)
         queue: queueName,
         durable: true,
         exclusive: false,
-        autoDelete: true);
+        autoDelete: true,
+        arguments: new Dictionary<string, object>
+        {
+            { "x-dead-letter-exchange", dlqExchangeName }
+        });
 }
-
 
 void CreateExchange(IModel channel)
 {
     channel.ExchangeDeclare(
         exchange: exchangeName,
-        type: ExchangeType.Topic,
+        type: ExchangeType.Topic, // Esse é o tipo de exchange que vamos utilizar para distribuir as mensagens para diversas filas, de acordo com a routing key
         durable: true,
         autoDelete: true);
 }
 
-
-void QueueBind(IModel channel, string routingKey)
+void BindQueueToExchange(IModel channel, string routingKey)
 {
     channel.QueueBind(
         queue: queueName,
         exchange: exchangeName,
         routingKey: routingKey);
 }
-
 
 
 void SendMessage(IModel channel, string routingKey)
@@ -103,10 +136,14 @@ void SendMessage(IModel channel, string routingKey)
     {
         var body = System.Text.Encoding.UTF8.GetBytes(message);
 
+        // publicar mensagem com prazo de expiração de 10 segundos
+        var properties = channel.CreateBasicProperties();
+        properties.Expiration = "10000";
+
         channel.BasicPublish(
             exchange: exchangeName,
             routingKey: routingKey,
-            basicProperties: null,
+            basicProperties: properties,
             body: body);
 
         Console.WriteLine("Mensagem enviada com sucesso");

@@ -5,7 +5,7 @@ using RabbitMQ.Client.Events;
 var exchangeName = "pgto";
 var queueName = "pgto";
 var routingKey = "pgto.*";
-
+var dlqExchangeName = "pgto.dql";
 
 try
 {
@@ -59,7 +59,11 @@ void CreateQueue(IModel channel)
         queue: queueName,
         durable: true,
         exclusive: false,
-        autoDelete: true);
+        autoDelete: true,
+        arguments: new Dictionary<string, object>
+        {
+            { "x-dead-letter-exchange", dlqExchangeName }
+        });
 }
 
 
