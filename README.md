@@ -24,7 +24,7 @@ docker-compose up -d rabbitmq
 #### Init Producer
 
 ```bash
-cd other/Producer
+cd src/Producer
 dotnet run
 ```
 
@@ -32,13 +32,13 @@ dotnet run
 #### Init Consumers
 
 ```bash
-cd other/consumer.Pgto
+cd src/consumer.Pgto
 dotnet run
 
-cd other/Consumer.Pgto.Boleto
+cd src/Consumer.Pgto.Boleto
 dotnet run
 
-cd other/Consumer.Pgto.Cartao
+cd src/Consumer.Pgto.Cartao
 dotnet run
 ```
 
