@@ -98,3 +98,13 @@ Uma estratégia para melhorar a performance é utilizar o Publish Confirms em co
 <https://www.rabbitmq.com/tutorials/tutorial-seven-dotnet.html>
 
 
+#### Recuperação de falhas
+
+Verificar como:
+- limitar quantidade de retentaivas de envio de mensagem.
+- limitar tempo de espera para envio de mensagem.
+- criação de fila e exchange de mensagens não entregues (dead letter queue):
+    - Comprimento máximo da fila excedido.
+    - Tempo de vida da mensagem excedido.
+    - Mensagem rejeitada pelo consumidor.
+
