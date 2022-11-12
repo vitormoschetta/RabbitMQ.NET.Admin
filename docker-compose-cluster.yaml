@@ -1,0 +1,52 @@
+version: "3"
+
+networks: 
+  adminnetwork:
+    driver: bridge
+    name: admin-network
+
+services:
+  rabbitmq1:
+    container_name: rabbitmq1
+    image: rabbitmq:3.10-management
+    environment:
+      - RABBITMQ_NODENAME=rabbit@rabbitmq1
+      - RABBITMQ_DEFAULT_USER=adminuser
+      - RABBITMQ_DEFAULT_PASS=123456
+      - RABBITMQ_DEFAULT_VHOST=adminvhost
+      - RABBITMQ_ERLANG_COOKIE=secretcookie
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - adminnetwork  
+
+  rabbitmq2:
+    container_name: rabbitmq2
+    image: rabbitmq:3.10-management
+    environment:
+      - RABBITMQ_NODENAME=rabbit@rabbitmq2
+      - RABBITMQ_DEFAULT_USER=adminuser
+      - RABBITMQ_DEFAULT_PASS=123456
+      - RABBITMQ_DEFAULT_VHOST=adminvhost
+      - RABBITMQ_ERLANG_COOKIE=secretcookie
+    ports:
+      - 5673:5672
+      - 15673:15672
+    networks:
+      - adminnetwork
+
+  rabbitmq3:
+    container_name: rabbitmq3
+    image: rabbitmq:3.10-management
+    environment:
+      - RABBITMQ_NODENAME=rabbit@rabbitmq3
+      - RABBITMQ_DEFAULT_USER=adminuser
+      - RABBITMQ_DEFAULT_PASS=123456
+      - RABBITMQ_DEFAULT_VHOST=adminvhost
+      - RABBITMQ_ERLANG_COOKIE=secretcookie
+    ports:
+      - 5674:5672
+      - 15674:15672
+    networks:
+      - adminnetwork

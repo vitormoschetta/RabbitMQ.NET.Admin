@@ -154,3 +154,56 @@ rabbitmq-plugins enable rabbitmq_shovel rabbitmq_shovel_management
 
 Obs: Temos um endpoint com exemplo de como mover mensagens de uma fila para outra. Olhar o arquivo `src/Admin.Api/Controllers/QueueController.cs`.
 
+
+#### Alta disponibilidade (High Availability - HA)
+
+Já que o Broker é o coração da arquitetura, precisamos garantir que ele esteja sempre disponível. Para isso, podemos utilizar o cluster RabbitMQ.
+
+Para criar um cluster RabbitMQ, execute o comando abaixo:
+    
+```bash
+docker-compose -f docker-compose-cluster.yaml up -d
+```
+
+com o comando acima subimos 3 instâncias do RabbitMQ, cada uma em um container, e uma porta diferente.
+
+Para configurar o cluster, execute o comando abaixo:
+
+```bash
+docker exec -it rabbitmq2 rabbitmqctl stop_app
+docker exec -it rabbitmq2 rabbitmqctl reset
+docker exec -it rabbitmq2 rabbitmqctl join_cluster rabbit@rabbitmq1
+docker exec -it rabbitmq2 rabbitmqctl start_app
+
+docker exec -it rabbitmq3 rabbitmqctl stop_app
+docker exec -it rabbitmq3 rabbitmqctl reset
+docker exec -it rabbitmq3 rabbitmqctl join_cluster rabbit@rabbitmq1
+docker exec -it rabbitmq3 rabbitmqctl start_app
+```
+
+O que fizemos acima foi:
+- Parar a aplicação do RabbitMQ no container `rabbitmq2`.
+- Resetar o container `rabbitmq2`.
+- Juntar o container `rabbitmq2` ao cluster `rabbit@rabbitmq1`.
+- Iniciar a aplicação do RabbitMQ no container `rabbitmq2`.
+
+O mesmo foi feito para o container `rabbitmq3`.
+
+Para verificar o status do cluster, execute o comando abaixo:
+
+```bash
+docker exec -it rabbitmq1 rabbitmqctl cluster_status
+```
+
+Com tudo isso o nosso cluster ainda não está com alta disponibilidade. Para isso precisamos atualizar a política de HA do cluster (informar vhost, exchange e queue):
+
+```bash
+docker exec -it rabbitmq1 rabbitmqctl set_policy ha-all "^" '{"ha-mode":"all"}' --priority 1 --apply-to all --vhost adminvhost
+```
+
+Agora sim, nosso cluster está com alta disponibilidade. Se exisitir uma falha em um dos nós do cluster, o RabbitMQ irá automaticamente redirecionar as mensagens para os outros nós do cluster.
+
+<br>
+
+## Referências
+<https://www.rabbitmq.com/clustering.html>
